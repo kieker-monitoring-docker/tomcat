@@ -12,7 +12,7 @@ WORKDIR /opt
 ##
 
 # Set kieker environment variables
-ENV KIEKER_VERSION 1.12-20150624.003906-77
+ENV KIEKER_VERSION <version> 
 ENV KIEKER_FOLDER /opt/kieker
 ENV KIEKER_AGENT ${KIEKER_FOLDER}/agent
 ENV KIEKER_CONFIG ${KIEKER_FOLDER}/config
@@ -23,7 +23,7 @@ ENV KIEKER_JPETSTORE ${KIEKER_WEBAPPS}/jpetstore
 # File name definitions (to be able to change them easily later on)
 ENV KIEKER_MONITORING_PROPERTIES kieker.monitoring.properties
 ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
-ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
+ENV KIEKER_AGENT_BASE_URL <url>
 ENV KIEKER_TOMCAT_METAINF /usr/local/tomcat/lib/META-INF
 ENV KIEKER_TOMCAT_WEBAPPS /usr/local/tomcat/webapps
 ENV KIEKER_JPETSTORE_FOLDER jpetstore
@@ -47,10 +47,11 @@ RUN \
 mkdir -p ${KIEKER_AGENT} && \
 mkdir -p ${KIEKER_LOGS} && \
 mkdir -p ${KIEKER_TOMCAT_METAINF} && \
-wget ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AGENT_JAR} && \
+wget ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AGENT_JAR}
 #
 # Create symlinks to the AspectJ configuration file
 ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
+ln -s ${KIEKER_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} && \
 #
 # Insert the JavaVM arguments for instrumentation into catalina.sh
 sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \

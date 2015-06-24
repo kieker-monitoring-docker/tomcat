@@ -27,12 +27,13 @@ ENV KIEKER_TOMCAT_METAINF /usr/local/tomcat/lib/META-INF
 ENV KIEKER_TOMCAT_WEBAPPS /usr/local/tomcat/webapps
 ENV KIEKER_JPETSTORE_FOLDER jpetstore
 
+
 ##
 # COPY copies a file from the host to the container
 ##
 
 # Copy files to container
-COPY ${KIEKER_AGENT_JAR} ${KIEKER_AGENT}/${KIEKER_AGENT_JAR}
+#COPY ${KIEKER_AGENT_JAR} ${KIEKER_AGENT}/${KIEKER_AGENT_JAR}
 COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES}
 COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
 
@@ -41,18 +42,17 @@ COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
 # (it is advised to concatenate the commands to reduce the number of intermittent containers during the build)
 ##
 
-# Create needed folders
+# Create needed folders and download JAR
 RUN \
-mkdir -p ${KIEKER_LOGS} \
-&& \
-mkdir -p ${KIEKER_TOMCAT_METAINF}
-
+mkdir -p ${KIEKER_AGENT} && \
+mkdir -p ${KIEKER_LOGS} && \
+mkdir -p ${KIEKER_TOMCAT_METAINF} && \
+wget "https://search.maven.org/remotecontent?filepath=net/kieker-monitoring/kieker/${KIEKER_VERSION}/${KIEKER_AGENT_JAR}" -O "${KIEKER_AGENT}/${KIEKER_AGENT_JAR}" && \
+#
 # Create symlinks to the AspectJ configuration file
-RUN \ 
-ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} \
-&& \
-ln -s ${KIEKER_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} \
-&& \
+ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
+ln -s ${KIEKER_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} && \
+#
 # Insert the JavaVM arguments for instrumentation into catalina.sh
 sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
 -javaagent:${KIEKER_AGENT}/${KIEKER_AGENT_JAR} \
@@ -60,8 +60,7 @@ sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
 -Dkieker.monitoring.writer.filesystem.AsyncFsWriter.customStoragePath=${KIEKER_LOGS} \
 -Daj.weaving.verbose=true \
 -Dkieker.monitoring.skipDefaultAOPConfiguration=true \
-\"" /usr/local/tomcat/bin/catalina.sh \
-&& \
+\"" /usr/local/tomcat/bin/catalina.sh && \
 sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/local/tomcat/bin/catalina.sh
 
 VOLUME ["/opt/kieker"]

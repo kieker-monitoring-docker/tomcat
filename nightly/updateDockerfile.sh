@@ -34,13 +34,7 @@ rm $TMP_FILE_1
 rm $TMP_FILE_2
 
 if [ -f Dockerfile ]; then
-  echo "Dockerfile exists"
   sed -i "s%KIEKER_VERSION .*%KIEKER_VERSION $LATEST_VERSION-$TIMESTAMP-$BUILD_NUMBER%g" Dockerfile
   sed -i "s%KIEKER_AGENT_BASE_URL .*%KIEKER_AGENT_BASE_URL \"$BASE_URL/$LATEST_VERSION_SNAPSHOT\"%g" Dockerfile
 fi
-
-
-# Download the latest kieker-aspectj JAR.
-# wget "$BASE_URL/$LATEST_VERSION_SNAPSHOT/$FILE_NAME" -O "kieker-nightly-aspectj.jar"
-
 

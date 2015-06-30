@@ -12,7 +12,7 @@ WORKDIR /opt
 ##
 
 # Set kieker environment variables
-ENV KIEKER_VERSION 1.12-20150624.003906-77
+ENV KIEKER_VERSION 1.12-20150630.003920-82
 ENV KIEKER_FOLDER /opt/kieker
 ENV KIEKER_AGENT ${KIEKER_FOLDER}/agent
 ENV KIEKER_CONFIG ${KIEKER_FOLDER}/config
@@ -51,6 +51,7 @@ wget ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AG
 #
 # Create symlinks to the AspectJ configuration file
 ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
+ln -s ${KIEKER_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} && \
 #
 # Insert the JavaVM arguments for instrumentation into catalina.sh
 sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \

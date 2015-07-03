@@ -8,11 +8,25 @@ WORKDIR /opt
 
 
 ##
+# CMD defines a default command that is executed when no command is given
+##
+
+# Here we just start the tomcat server
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
+##
+# EXPOSE exposes the given port from the container
+##
+
+# Expose the tomcat default port
+EXPOSE 8080
+
+
+##
 # ENV sets a global environment variable within the container
 ##
 
 # Set kieker environment variables
-ENV KIEKER_VERSION 1.11
 ENV KIEKER_FOLDER /opt/kieker
 ENV KIEKER_AGENT ${KIEKER_FOLDER}/agent
 ENV KIEKER_CONFIG ${KIEKER_FOLDER}/config
@@ -22,7 +36,6 @@ ENV KIEKER_JPETSTORE ${KIEKER_WEBAPPS}/jpetstore
 
 # File name definitions (to be able to change them easily later on)
 ENV KIEKER_MONITORING_PROPERTIES kieker.monitoring.properties
-ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
 ENV KIEKER_TOMCAT_METAINF /usr/local/tomcat/lib/META-INF
 ENV KIEKER_TOMCAT_WEBAPPS /usr/local/tomcat/webapps
 ENV KIEKER_JPETSTORE_FOLDER jpetstore
@@ -33,9 +46,17 @@ ENV KIEKER_JPETSTORE_FOLDER jpetstore
 ##
 
 # Copy files to container
-#COPY ${KIEKER_AGENT_JAR} ${KIEKER_AGENT}/${KIEKER_AGENT_JAR}
 COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES}
 COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
+
+
+##
+# Optimization
+# To reduce the number of container parts to be pulled after an update, 
+# these commands have been moved down here.
+##
+ENV KIEKER_VERSION 1.11
+ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
 
 ##
 # RUN executes a command on the container
@@ -47,7 +68,7 @@ RUN \
 mkdir -p ${KIEKER_AGENT} && \
 mkdir -p ${KIEKER_LOGS} && \
 mkdir -p ${KIEKER_TOMCAT_METAINF} && \
-wget "https://search.maven.org/remotecontent?filepath=net/kieker-monitoring/kieker/${KIEKER_VERSION}/${KIEKER_AGENT_JAR}" -O "${KIEKER_AGENT}/${KIEKER_AGENT_JAR}" && \
+wget -q "https://search.maven.org/remotecontent?filepath=net/kieker-monitoring/kieker/${KIEKER_VERSION}/${KIEKER_AGENT_JAR}" -O "${KIEKER_AGENT}/${KIEKER_AGENT_JAR}" && \
 #
 # Create symlinks to the AspectJ configuration file
 ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
@@ -65,16 +86,3 @@ sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/loc
 
 VOLUME ["/opt/kieker"]
 
-##
-# CMD defines a default command that is executed when no command is given
-##
-
-# Here we just start the tomcat server
-CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
-
-##
-# EXPOSE exposes the given port from the container
-##
-
-# Expose the tomcat default port
-EXPOSE 8080

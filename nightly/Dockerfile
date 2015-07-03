@@ -12,7 +12,6 @@ WORKDIR /opt
 ##
 
 # Set kieker environment variables
-ENV KIEKER_VERSION 1.12-20150703.003602-85
 ENV KIEKER_FOLDER /opt/kieker
 ENV KIEKER_AGENT ${KIEKER_FOLDER}/agent
 ENV KIEKER_CONFIG ${KIEKER_FOLDER}/config
@@ -22,8 +21,6 @@ ENV KIEKER_JPETSTORE ${KIEKER_WEBAPPS}/jpetstore
 
 # File name definitions (to be able to change them easily later on)
 ENV KIEKER_MONITORING_PROPERTIES kieker.monitoring.properties
-ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
-ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
 ENV KIEKER_TOMCAT_METAINF /usr/local/tomcat/lib/META-INF
 ENV KIEKER_TOMCAT_WEBAPPS /usr/local/tomcat/webapps
 ENV KIEKER_JPETSTORE_FOLDER jpetstore
@@ -36,6 +33,34 @@ ENV KIEKER_JPETSTORE_FOLDER jpetstore
 # Copy files to container
 COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES}
 COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
+
+##
+# VOLUME defines a part of the container that may be altered from the outside
+##
+VOLUME ["/opt/kieker"]
+
+##
+# CMD defines a default command that is executed when no command is given
+##
+
+# Here we just start the tomcat server
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
+##
+# EXPOSE exposes the given port from the container
+##
+
+# Expose the tomcat default port
+EXPOSE 8080
+
+##
+# Optimization
+# To reduce the number of container parts to be pulled after an update, 
+# these commands have been moved down here.
+##
+ENV KIEKER_VERSION 1.12-20150703.003602-85
+ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
+ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
 
 ##
 # RUN executes a command on the container
@@ -63,18 +88,3 @@ sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
 \"" /usr/local/tomcat/bin/catalina.sh && \
 sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/local/tomcat/bin/catalina.sh
 
-VOLUME ["/opt/kieker"]
-
-##
-# CMD defines a default command that is executed when no command is given
-##
-
-# Here we just start the tomcat server
-CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
-
-##
-# EXPOSE exposes the given port from the container
-##
-
-# Expose the tomcat default port
-EXPOSE 8080

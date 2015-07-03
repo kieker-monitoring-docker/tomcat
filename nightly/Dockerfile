@@ -8,6 +8,22 @@ WORKDIR /opt
 
 
 ##
+# EXPOSE exposes the given port from the container
+##
+
+# Expose the tomcat default port
+EXPOSE 8080
+
+
+##
+# CMD defines a default command that is executed when no command is given
+##
+
+# Here we just start the tomcat server
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+
+
+##
 # ENV sets a global environment variable within the container
 ##
 
@@ -34,24 +50,6 @@ ENV KIEKER_JPETSTORE_FOLDER jpetstore
 COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES}
 COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
 
-##
-# VOLUME defines a part of the container that may be altered from the outside
-##
-VOLUME ["/opt/kieker"]
-
-##
-# CMD defines a default command that is executed when no command is given
-##
-
-# Here we just start the tomcat server
-CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
-
-##
-# EXPOSE exposes the given port from the container
-##
-
-# Expose the tomcat default port
-EXPOSE 8080
 
 ##
 # Optimization
@@ -72,11 +70,10 @@ RUN \
 mkdir -p ${KIEKER_AGENT} && \
 mkdir -p ${KIEKER_LOGS} && \
 mkdir -p ${KIEKER_TOMCAT_METAINF} && \
-wget ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AGENT_JAR} && \
+wget -q ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AGENT_JAR} && \
 #
 # Create symlinks to the AspectJ configuration file
 ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
-ln -s ${KIEKER_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_LIVEDEMO_WAR} && \
 #
 # Insert the JavaVM arguments for instrumentation into catalina.sh
 sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
@@ -88,3 +85,9 @@ sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
 \"" /usr/local/tomcat/bin/catalina.sh && \
 sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/local/tomcat/bin/catalina.sh
 
+
+##
+# VOLUME defines a part of the container that may be altered from the outside
+# Note: This command should be issued at the end of the Dockerfile.
+##
+VOLUME ["/opt/kieker"]

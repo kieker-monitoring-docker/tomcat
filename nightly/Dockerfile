@@ -56,7 +56,7 @@ COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
 # To reduce the number of container parts to be pulled after an update, 
 # these commands have been moved down here.
 ##
-ENV KIEKER_VERSION 1.12-20150704.003619-86
+ENV KIEKER_VERSION 1.12-20150705.003622-87
 ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
 ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
 

@@ -1,93 +1,53 @@
-# Define docker container we want to use as a basis for the new container
 FROM tomcat
 
 MAINTAINER http://kieker-monitoring.net/support/
 
-# set working directory (within the container)
 WORKDIR /opt
 
-
-##
-# EXPOSE exposes the given port from the container
-##
-
-# Expose the tomcat default port
-EXPOSE 8080
-
-
-##
-# CMD defines a default command that is executed when no command is given
-##
-
-# Here we just start the tomcat server
 CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
 
+EXPOSE 8080
 
-##
-# ENV sets a global environment variable within the container
-##
-
-# Set kieker environment variables
+# Set folder variables
 ENV KIEKER_FOLDER /opt/kieker
-ENV KIEKER_AGENT ${KIEKER_FOLDER}/agent
-ENV KIEKER_CONFIG ${KIEKER_FOLDER}/config
-ENV KIEKER_LOGS ${KIEKER_FOLDER}/logs
-ENV KIEKER_WEBAPPS ${KIEKER_FOLDER}/webapps
-ENV KIEKER_JPETSTORE ${KIEKER_WEBAPPS}/jpetstore
+ENV KIEKER_AGENT_FOLDER ${KIEKER_FOLDER}/agent
+ENV KIEKER_CONFIG_FOLDER ${KIEKER_FOLDER}/config
+ENV KIEKER_LOGS_FOLDER ${KIEKER_FOLDER}/logs
+ENV KIEKER_WEBAPPS_FOLDER ${KIEKER_FOLDER}/webapps
+ENV KIEKER_JPETSTORE_FOLDER ${KIEKER_WEBAPPS_FOLDER}/jpetstore
+ENV KIEKER_TOMCAT_METAINF_FOLDER /usr/local/tomcat/lib/META-INF
+ENV KIEKER_TOMCAT_WEBAPPS_FOLDER /usr/local/tomcat/webapps
 
-# File name definitions (to be able to change them easily later on)
+# Set other variables
 ENV KIEKER_MONITORING_PROPERTIES kieker.monitoring.properties
-ENV KIEKER_TOMCAT_METAINF /usr/local/tomcat/lib/META-INF
-ENV KIEKER_TOMCAT_WEBAPPS /usr/local/tomcat/webapps
-ENV KIEKER_JPETSTORE_FOLDER jpetstore
+ENV KIEKER_JPETSTORE jpetstore
+ENV KIEKER_AGENT_JAR agent.jar
+ENV KIEKER_AOP aop.xml
 
+COPY ${KIEKER_JPETSTORE} ${KIEKER_JPETSTORE_FOLDER}
+COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG_FOLDER}/${KIEKER_MONITORING_PROPERTIES}
+# COPY ${KIEKER_AOP} ${KIEKER_CONFIG_FOLDER}/${KIEKER_AOP}
 
-##
-# COPY copies a file from the host to the container
-##
-
-# Copy files to container
-COPY ${KIEKER_MONITORING_PROPERTIES} ${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES}
-COPY ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_JPETSTORE}
-
-
-##
-# Optimization
-# To reduce the number of container parts to be pulled after an update, 
-# these commands have been moved down here.
-##
-ENV KIEKER_VERSION 1.12-20150703.003602-85
-ENV KIEKER_AGENT_JAR kieker-${KIEKER_VERSION}-aspectj.jar
-ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
-
-##
-# RUN executes a command on the container
-# (it is advised to concatenate the commands to reduce the number of intermittent containers during the build)
-##
-
-# Create needed folders and download JAR
 RUN \
-mkdir -p ${KIEKER_AGENT} && \
-mkdir -p ${KIEKER_LOGS} && \
-mkdir -p ${KIEKER_TOMCAT_METAINF} && \
-wget -q ${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR} -O ${KIEKER_AGENT}/${KIEKER_AGENT_JAR} && \
-#
-# Create symlinks to the AspectJ configuration file
-ln -s ${KIEKER_JPETSTORE} ${KIEKER_TOMCAT_WEBAPPS}/${KIEKER_JPETSTORE_FOLDER} && \
-#
-# Insert the JavaVM arguments for instrumentation into catalina.sh
-sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
--javaagent:${KIEKER_AGENT}/${KIEKER_AGENT_JAR} \
--Dkieker.monitoring.configuration=${KIEKER_CONFIG}/${KIEKER_MONITORING_PROPERTIES} \
--Dkieker.monitoring.writer.filesystem.AsyncFsWriter.customStoragePath=${KIEKER_LOGS} \
--Daj.weaving.verbose=true \
--Dkieker.monitoring.skipDefaultAOPConfiguration=true \
-\"" /usr/local/tomcat/bin/catalina.sh && \
-sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/local/tomcat/bin/catalina.sh
+  mkdir -p ${KIEKER_AGENT_FOLDER} && \
+  mkdir -p ${KIEKER_LOGS_FOLDER} && \
+  mkdir -p ${KIEKER_TOMCAT_METAINF_FOLDER}
+  
+ENV KIEKER_VERSION 1.12-20150706.003609-88
+ENV KIEKER_AGENT_JAR_SRC kieker-${KIEKER_VERSION}-aspectj.jar
+ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
+  
+RUN \
+  wget -q "${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR_SRC}" -O "${KIEKER_AGENT_FOLDER}/${KIEKER_AGENT_JAR}" && \
+  ln -s ${KIEKER_JPETSTORE_FOLDER} ${KIEKER_TOMCAT_WEBAPPS_FOLDER}/${KIEKER_JPETSTORE} && \
+  # ln -s ${KIEKER_CONFIG_FOLDER}/${KIEKER_AOP} ${KIEKER_TOMCAT_METAINF_FOLDER}/${KIEKER_AOP} && \
+  sed -i '250i\'"export KIEKER_JAVA_OPTS=\" \
+    -javaagent:${KIEKER_AGENT_FOLDER}/${KIEKER_AGENT_JAR} \
+    -Dkieker.monitoring.configuration=${KIEKER_CONFIG_FOLDER}/${KIEKER_MONITORING_PROPERTIES} \
+    -Dkieker.monitoring.writer.filesystem.AsyncFsWriter.customStoragePath=${KIEKER_LOGS_FOLDER} \
+    -Daj.weaving.verbose=true \
+    -Dkieker.monitoring.skipDefaultAOPConfiguration=true \
+    \"" /usr/local/tomcat/bin/catalina.sh && \
+  sed -i '251i\'"export JAVA_OPTS=\"\${KIEKER_JAVA_OPTS} \${JAVA_OPTS}\"" /usr/local/tomcat/bin/catalina.sh
 
-
-##
-# VOLUME defines a part of the container that may be altered from the outside
-# Note: This command should be issued at the end of the Dockerfile.
-##
 VOLUME ["/opt/kieker"]

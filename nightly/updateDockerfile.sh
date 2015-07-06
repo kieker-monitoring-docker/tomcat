@@ -16,13 +16,13 @@ BASE_URL="https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/
 # Download base maven-metadata.xml to find out the latest version
 TMP_FILE_1=`mktemp`
 METADATA="$BASE_URL/maven-metadata.xml"
-curl $METADATA > $TMP_FILE_1
+curl -s $METADATA > $TMP_FILE_1
 LATEST_VERSION_SNAPSHOT=`stripHtml $TMP_FILE_1 "latest"`
 
 # Find out the name of the latest nightly build aspectj JAR file
 TMP_FILE_2=`mktemp`
 SUB_METADATA="$BASE_URL/$LATEST_VERSION_SNAPSHOT/maven-metadata.xml"
-curl $SUB_METADATA > $TMP_FILE_2
+curl -s $SUB_METADATA > $TMP_FILE_2
 LATEST_VERSION=`stripHtml $TMP_FILE_2 "version" | cut -d "-" -f 1`
 TIMESTAMP=`stripHtml $TMP_FILE_2 "timestamp"`
 BUILD_NUMBER=`stripHtml $TMP_FILE_2 "buildNumber"`

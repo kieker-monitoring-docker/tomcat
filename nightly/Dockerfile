@@ -33,9 +33,9 @@ RUN \
   mkdir -p ${KIEKER_LOGS_FOLDER} && \
   mkdir -p ${KIEKER_TOMCAT_METAINF_FOLDER}
   
-ENV KIEKER_VERSION 1.12-20151001.004458-175
+ENV KIEKER_VERSION --
 ENV KIEKER_AGENT_JAR_SRC kieker-${KIEKER_VERSION}-aspectj.jar
-ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12-SNAPSHOT"
+ENV KIEKER_AGENT_BASE_URL "https://oss.sonatype.org/content/groups/staging/net/kieker-monitoring/kieker/1.12"
   
 RUN \
   wget -q "${KIEKER_AGENT_BASE_URL}/${KIEKER_AGENT_JAR_SRC}" -O "${KIEKER_AGENT_FOLDER}/${KIEKER_AGENT_JAR}" && \
